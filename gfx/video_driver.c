@@ -195,6 +195,7 @@ struct aspect_ratio_elem aspectratio_lut[ASPECT_RATIO_END] = {
    { 0.0f         , ""              }, /* config -        initialized in video_driver_init_internal */
    { 1.0f         , ""              }, /* square pixel -  initialized in video_driver_set_viewport_square_pixel */
    { 1.0f         , ""              }, /* core provided - initialized in video_driver_init_internal */
+   { 1.0f         , ""              }, /* core provided 240p mode - initialized in video_driver_init_internal */
    { 0.0f         , ""              }, /* custom -        initialized in video_driver_init_internal */
    { 4.0f / 3.0f  , ""              }  /* full -          initialized in video_driver_init_internal */
 };
@@ -1911,6 +1912,14 @@ void video_driver_set_viewport_core(void)
       aspectratio_lut[ASPECT_RATIO_CORE].value = core_aspect;
 }
 
+void video_driver_set_viewport_240p(void)
+{
+   float core_aspect = video_driver_get_core_aspect();
+   if (core_aspect != 0)
+      core_aspect = 2.0f * core_aspect;
+      aspectratio_lut[ASPECT_RATIO_240P].value = core_aspect;
+}
+
 void video_driver_set_rgba(void)
 {
    video_driver_state_t *video_st       = &video_driver_st;
@@ -2007,6 +2016,10 @@ void video_driver_set_aspect_ratio(void)
 
       case ASPECT_RATIO_CORE:
          video_driver_set_viewport_core();
+         break;
+
+      case ASPECT_RATIO_240P:
+         video_driver_set_viewport_240p();
          break;
 
       case ASPECT_RATIO_CONFIG:
@@ -3016,6 +3029,9 @@ bool video_driver_init_internal(bool *video_is_threaded, bool verbosity_enabled)
    strlcpy(aspectratio_lut[ASPECT_RATIO_CORE].name,
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_VIDEO_ASPECT_RATIO_CORE_PROVIDED),
          sizeof(aspectratio_lut[ASPECT_RATIO_CORE].name));
+   strlcpy(aspectratio_lut[ASPECT_RATIO_240P].name,
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_VIDEO_ASPECT_RATIO_240P_PROVIDED),
+         sizeof(aspectratio_lut[ASPECT_RATIO_240P].name));
    strlcpy(aspectratio_lut[ASPECT_RATIO_CUSTOM].name,
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_VIDEO_ASPECT_RATIO_CUSTOM),
          sizeof(aspectratio_lut[ASPECT_RATIO_CUSTOM].name));
@@ -3026,6 +3042,7 @@ bool video_driver_init_internal(bool *video_is_threaded, bool verbosity_enabled)
    /* Update core-dependent aspect ratio values. */
    video_driver_set_viewport_square_pixel(geom);
    video_driver_set_viewport_core();
+   video_driver_set_viewport_240p();
    video_driver_set_viewport_config(geom,
          settings->floats.video_aspect_ratio,
          settings->bools.video_aspect_ratio_auto);
